@@ -1,0 +1,15 @@
+name: Enforce Allowed Topics
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  enforce:
+    uses: sentricmusic/.github/.github/workflows/enforce-topics.yml@main
+    permissions:
+      contents: read
+      issues: write
