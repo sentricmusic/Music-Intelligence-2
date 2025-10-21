@@ -4,8 +4,6 @@ import requests
 import base64
 import os
 import time
-import jwt
-import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,14 +11,8 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-# Spotify API credentials
 CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
-
-# Apple Music API credentials
-APPLE_TEAM_ID = "2MQ6NB4Q3C"
-APPLE_KEY_ID = "FH2F6F277R"
-APPLE_PRIVATE_KEY_PATH = r"c:\Users\kaz.roche\Downloads\AuthKey_FH2F6F277R.p8"
 
 def get_spotify_token():
     auth = base64.b64encode(f"{CLIENT_ID}:{CLIENT_SECRET}".encode()).decode()
@@ -30,104 +22,6 @@ def get_spotify_token():
         data={"grant_type": "client_credentials"}
     )
     return res.json()["access_token"]
-
-def get_apple_music_token():
-    """Generate Apple Music API token using JWT"""
-    try:
-        # Read the private key
-        with open(APPLE_PRIVATE_KEY_PATH, 'r') as f:
-            private_key = f.read()
-        
-        # Create JWT payload (using your exact format)
-        payload = {
-            'iss': APPLE_TEAM_ID,
-            'iat': int(time.time()),
-            'exp': int(time.time()) + 3600,  # 1 hour
-        }
-        
-        # Generate JWT token (using your exact format)
-        token = jwt.encode(
-            payload,
-            private_key,
-            algorithm='ES256',
-            headers={'kid': APPLE_KEY_ID, 'alg': 'ES256'}
-        )
-        return token
-    
-    except Exception as e:
-        print(f"Error generating Apple Music token: {e}")
-        return None
-
-def search_apple_music_track(isrc, token):
-    """Search for a track in Apple Music using ISRC"""
-    if not isrc or not token:
-        return None
-    
-    try:
-        headers = {
-            'Authorization': f'Bearer {token}',
-            'Accept': 'application/json'
-        }
-        
-        # Search using ISRC
-        url = f"https://api.music.apple.com/v1/catalog/us/songs"
-        params = {'filter[isrc]': isrc}
-        
-        response = requests.get(url, headers=headers, params=params)
-        
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('data') and len(data['data']) > 0:
-                return data['data'][0]  # Return first match
-        
-        return None
-    
-    except Exception as e:
-        print(f"Error searching Apple Music for ISRC {isrc}: {e}")
-        return None
-
-def get_writer_credits(apple_music_id, token):
-    """Get writer credits for a track from Apple Music"""
-    if not apple_music_id or not token:
-        return []
-    
-    try:
-        headers = {
-            'Authorization': f'Bearer {token}',
-            'Accept': 'application/json'
-        }
-        
-        # Get detailed track info including songwriting credits
-        url = f"https://api.music.apple.com/v1/catalog/us/songs/{apple_music_id}"
-        params = {'include': 'albums'}
-        
-        response = requests.get(url, headers=headers, params=params)
-        
-        if response.status_code == 200:
-            data = response.json()
-            track_data = data.get('data', [{}])[0]
-            attributes = track_data.get('attributes', {})
-            
-            # Extract writer credits from various fields
-            writers = []
-            
-            # Check composerName field
-            if 'composerName' in attributes and attributes['composerName']:
-                writers.extend([w.strip() for w in attributes['composerName'].split(',')])
-            
-            # Check songwriters in editorial notes if available
-            editorial_notes = attributes.get('editorialNotes', {})
-            if 'short' in editorial_notes:
-                # Parse potential writer info from editorial notes
-                pass
-            
-            return list(set(writers))  # Remove duplicates
-        
-        return []
-    
-    except Exception as e:
-        print(f"Error getting writer credits for Apple Music ID {apple_music_id}: {e}")
-        return []
 
 def get_playlists_from_category(market, genre, token):
     market_codes = {
@@ -318,61 +212,6 @@ def get_tracks():
             'success': True,
             'total_tracks': len(all_tracks),
             'tracks': all_tracks
-        })
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/enrich-tracks', methods=['POST'])
-def enrich_tracks():
-    """Enrich Spotify tracks with Apple Music writer credits"""
-    data = request.json
-    tracks = data.get('tracks', [])
-    
-    if not tracks:
-        return jsonify({'error': 'tracks required'}), 400
-    
-    try:
-        # Generate Apple Music token
-        apple_token = get_apple_music_token()
-        
-        if not apple_token:
-            return jsonify({'error': 'Could not generate Apple Music token'}), 500
-        
-        enriched_tracks = []
-        total_tracks = len(tracks)
-        
-        for i, track in enumerate(tracks):
-            enriched_track = track.copy()  # Start with original Spotify data
-            
-            # Try to get writer credits from Apple Music using ISRC
-            isrc = track.get('isrc')
-            writers = []
-            
-            if isrc:
-                apple_track = search_apple_music_track(isrc, apple_token)
-                if apple_track:
-                    apple_id = apple_track.get('id')
-                    writers = get_writer_credits(apple_id, apple_token)
-            
-            # Add writer credits to track data
-            enriched_track['writers'] = writers
-            enriched_track['writer_count'] = len(writers)
-            
-            enriched_tracks.append(enriched_track)
-            
-            # Progress indicator
-            if (i + 1) % 10 == 0:
-                print(f"🎵 [{i+1}/{total_tracks}] Enriched tracks with writer credits...")
-            
-            # Rate limiting for Apple Music API
-            time.sleep(0.2)
-        
-        return jsonify({
-            'success': True,
-            'total_tracks': len(enriched_tracks),
-            'tracks_with_writers': len([t for t in enriched_tracks if t.get('writers')]),
-            'tracks': enriched_tracks
         })
         
     except Exception as e:

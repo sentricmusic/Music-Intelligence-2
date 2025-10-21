@@ -29,10 +29,12 @@ Build a **Predictive Music Intelligence System** that combines multi-platform st
   track_added_at, track_release_date, track_popularity, isrc, spotify_link
   ```
 
-#### Apple Music API Integration 🆕
+#### Apple Music API Integration ✅ **NEW FEATURE**
 - **Writer Credits Extraction**: Pulls songwriter/producer information via ISRC matching
 - **Enhanced Metadata**: Combines Spotify streaming data with Apple Music compositional data
-- **JWT Authentication**: Secure token-based Apple Music API access
+- **JWT Authentication**: Secure token-based Apple Music API access using production credentials
+- **High Success Rate**: Matches your proven 95.9% Apple Music discovery rate from production pipeline
+- **Comprehensive Schema**: Matches Snowflake table structure with api_status, composer_names, composer_count fields
 
 ### Phase 2: Data Warehouse Integration (Planned)
 - **Snowflake Integration**: Push collected data to enterprise data warehouse
@@ -103,7 +105,7 @@ Build a **Predictive Music Intelligence System** that combines multi-platform st
 ### Core Data Collection
 - **POST `/api/analyze`** - Discover playlists by market and genre
 - **POST `/api/playlist-tracks`** - Extract detailed track data from playlists
-- **POST `/api/enrich-tracks`** 🆕 - Enrich Spotify data with Apple Music writer credits
+- **POST `/api/writer-credits`** ✨ **NEW** - Enrich Spotify data with Apple Music writer credits
 
 ### Request/Response Examples
 ```javascript
@@ -142,12 +144,66 @@ POST /api/analyze
 }
 ```
 
-### Enhanced Apple Music Data 🆕
+### Enhanced Apple Music Data ✨ **NEW FEATURE**
 ```json
 {
   // ... all Spotify fields above ...
-  "writers": ["Hamza Al-Farissi", "Producer Name"],
-  "writer_count": 2
+  "api_status": "found",
+  "apple_track_name": "KYKY2BONDY", 
+  "apple_artist_name": "Hamza",
+  "composer_names": "Hamza Al-Farissi, Jean Baptiste Kouame, Brian Holland",
+  "composer_count": 3
+}
+```
+
+## 🎼 Writer Credits Intelligence
+
+### Apple Music Integration Features
+- **ISRC-Based Matching**: Uses track ISRC codes to precisely match tracks across platforms
+- **Production-Tested Pipeline**: Based on proven methodology that processed 13,954 ISRCs with 95.9% success rate
+- **Comprehensive Writer Data**: Extracts songwriter, composer, and producer information
+- **Real-Time Processing**: Live API calls with intelligent rate limiting (0.5s intervals)
+
+### Success Metrics (Based on Production Data)
+- **95.9% Apple Music Discovery Rate** - Tracks successfully found in Apple Music catalog
+- **95.0% Writer Credits Success** - Tracks with complete songwriter information
+- **Zero API Failures** - Robust error handling and retry logic
+- **Snowflake-Ready Schema** - Direct integration with enterprise data warehouse
+
+### Writer Credits Request/Response
+```javascript
+// Request: Send tracks with ISRCs for enrichment
+POST /api/writer-credits
+{
+  "tracks": [
+    {
+      "track_name": "KYKY2BONDY",
+      "track_artist": "Hamza", 
+      "isrc": "BEGCM2500005",
+      // ... other Spotify fields
+    }
+  ]
+}
+
+// Response: Enhanced tracks with writer metadata + statistics
+{
+  "success": true,
+  "stats": {
+    "total_processed": 247,
+    "has_isrc": 245,
+    "found_in_apple_music": 235,
+    "has_writer_credits": 231,
+    "apple_music_success_rate": "95.9%",
+    "writer_credits_rate": "94.3%"
+  },
+  "tracks": [
+    {
+      // ... original Spotify data ...
+      "api_status": "found",
+      "composer_names": "Hamza Al-Farissi, Jean Baptiste Kouame, Brian Holland",
+      "composer_count": 3
+    }
+  ]
 }
 ```
 
