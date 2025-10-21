@@ -10,14 +10,38 @@ function App() {
   const markets = ['France', 'UK', 'Germany', 'Spain', 'US', 'Thailand', 'Japan'];
   const genres = ['Hip-Hop', 'Pop', 'Electronic', 'R&B', 'Rock'];
 
-  const handleAnalyse = () => {
+ const handleAnalyse = async () => {
     if (!market || !genre) {
       alert('Please select both market and genre');
       return;
     }
+    
     setIsLoading(true);
-    console.log(`Analysing ${market} ${genre}...`);
-    // Later we'll connect to Python backend here
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ market, genre })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        const topPlaylist = data.playlists && data.playlists.length > 0 
+  ? data.playlists[0].playlist_name 
+  : 'None found';
+alert(`Found ${data.playlists_found} playlists for ${market} ${genre}!\n\nTop playlist: ${topPlaylist}`);
+      } else {
+        alert('Error: ' + data.error);
+      }
+    } catch (error) {
+      alert('Error connecting to backend: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
