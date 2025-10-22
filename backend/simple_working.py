@@ -196,79 +196,402 @@ def test():
         }), 500
 
 def get_playlists_from_category(market, genre, token):
-    """Get real Spotify playlists based on market and genre"""
-    market_codes = {
-        'France': 'FR',
-        'UK': 'GB', 
-        'Germany': 'DE',
-        'Spain': 'ES',
-        'US': 'US',
-        'Thailand': 'TH',
-        'Japan': 'JP'
+    """Universal playlist discovery system - works intelligently for ALL markets and genres"""
+    
+    # Market configurations with local terms
+    market_config = {
+        'France': {
+            'code': 'FR',
+            'terms': ['français', 'french', 'france', 'fr'],
+            'genre_translations': {
+                'hip-hop': ['rap français', 'rap fr', 'rappeur français'],
+                'pop': ['pop français', 'chanson française', 'pop fr'],
+                'electronic': ['électro français', 'french electronic', 'électro fr'],
+                'rock': ['rock français', 'french rock', 'rock fr'],
+                'r&b': ['rnb français', 'french rnb', 'rnb fr']
+            }
+        },
+        'Germany': {
+            'code': 'DE',
+            'terms': ['deutsch', 'german', 'deutschland', 'de'],
+            'genre_translations': {
+                'hip-hop': ['deutscher rap', 'rap deutsch', 'german rap'],
+                'pop': ['deutscher pop', 'german pop', 'pop deutsch'],
+                'electronic': ['deutsche elektronik', 'german electronic', 'techno deutsch'],
+                'rock': ['deutscher rock', 'german rock', 'rock deutsch'],
+                'r&b': ['deutscher rnb', 'german rnb', 'rnb deutsch']
+            }
+        },
+        'Spain': {
+            'code': 'ES',
+            'terms': ['español', 'spanish', 'españa', 'es'],
+            'genre_translations': {
+                'hip-hop': ['rap español', 'rap españa', 'spanish rap'],
+                'pop': ['pop español', 'spanish pop', 'pop españa'],
+                'electronic': ['electrónica española', 'spanish electronic', 'electro españa'],
+                'rock': ['rock español', 'spanish rock', 'rock españa'],
+                'r&b': ['rnb español', 'spanish rnb', 'rnb españa']
+            }
+        },
+        'UK': {
+            'code': 'GB',
+            'terms': ['uk', 'british', 'britain', 'gb'],
+            'genre_translations': {
+                'hip-hop': ['uk rap', 'british rap', 'grime uk'],
+                'pop': ['uk pop', 'british pop', 'brit pop'],
+                'electronic': ['uk house', 'uk dance', 'british electronic', 'uk garage', 'uk bass', 'uk bassline', 'uk dnb', 'uk dubstep'],
+                'rock': ['uk rock', 'british rock', 'brit rock'],
+                'r&b': ['uk rnb', 'british rnb', 'uk soul']
+            }
+        },
+        'US': {
+            'code': 'US',
+            'terms': ['american', 'usa', 'us'],
+            'genre_translations': {
+                'hip-hop': ['american rap', 'us hip hop', 'usa rap'],
+                'pop': ['american pop', 'us pop', 'usa pop'],
+                'electronic': ['american edm', 'us electronic', 'usa dance'],
+                'rock': ['american rock', 'us rock', 'usa rock'],
+                'r&b': ['american rnb', 'us rnb', 'usa soul']
+            }
+        },
+        'Thailand': {
+            'code': 'TH',
+            'terms': ['thai', 'thailand', 'th'],
+            'genre_translations': {
+                'hip-hop': ['thai rap', 'thailand hip hop', 'thai hip hop'],
+                'pop': ['thai pop', 'thailand pop', 't-pop'],
+                'electronic': ['thai electronic', 'thailand dance', 'thai edm'],
+                'rock': ['thai rock', 'thailand rock', 'thai indie'],
+                'r&b': ['thai rnb', 'thailand rnb', 'thai soul']
+            }
+        },
+        'Japan': {
+            'code': 'JP',
+            'terms': ['japanese', 'japan', 'jp', 'j-'],
+            'genre_translations': {
+                'hip-hop': ['japanese rap', 'japan hip hop', 'j-rap'],
+                'pop': ['j-pop', 'japanese pop', 'japan pop'],
+                'electronic': ['japanese electronic', 'japan edm', 'j-electronic'],
+                'rock': ['j-rock', 'japanese rock', 'japan rock'],
+                'r&b': ['j-rnb', 'japanese rnb', 'japan soul']
+            }
+        },
+        'Italy': {
+            'code': 'IT',
+            'terms': ['italian', 'italiano', 'italy', 'it'],
+            'genre_translations': {
+                'hip-hop': ['rap italiano', 'italian rap', 'rap italia'],
+                'pop': ['pop italiano', 'italian pop', 'musica italiana'],
+                'electronic': ['elettronica italiana', 'italian electronic'],
+                'rock': ['rock italiano', 'italian rock'],
+                'r&b': ['rnb italiano', 'italian rnb']
+            }
+        },
+        'Netherlands': {
+            'code': 'NL',
+            'terms': ['dutch', 'nederlands', 'holland', 'nl'],
+            'genre_translations': {
+                'hip-hop': ['nederlandse rap', 'dutch rap', 'nl rap'],
+                'pop': ['nederlandse pop', 'dutch pop', 'nl pop'],
+                'electronic': ['dutch electronic', 'nederlands dance'],
+                'rock': ['nederlandse rock', 'dutch rock'],
+                'r&b': ['nederlandse rnb', 'dutch rnb']
+            }
+        },
+        'Sweden': {
+            'code': 'SE',
+            'terms': ['swedish', 'sverige', 'sweden', 'se'],
+            'genre_translations': {
+                'hip-hop': ['svensk rap', 'swedish rap', 'sverige rap'],
+                'pop': ['svensk pop', 'swedish pop', 'sverige pop'],
+                'electronic': ['svensk elektronisk', 'swedish electronic'],
+                'rock': ['svensk rock', 'swedish rock'],
+                'r&b': ['svensk rnb', 'swedish rnb']
+            }
+        },
+        'Norway': {
+            'code': 'NO',
+            'terms': ['norwegian', 'norsk', 'norway', 'no'],
+            'genre_translations': {
+                'hip-hop': ['norsk rap', 'norwegian rap', 'norge rap'],
+                'pop': ['norsk pop', 'norwegian pop'],
+                'electronic': ['norsk elektronisk', 'norwegian electronic'],
+                'rock': ['norsk rock', 'norwegian rock'],
+                'r&b': ['norsk rnb', 'norwegian rnb']
+            }
+        },
+        'Brazil': {
+            'code': 'BR',
+            'terms': ['brazilian', 'brasil', 'brazil', 'br'],
+            'genre_translations': {
+                'hip-hop': ['rap brasileiro', 'brazilian rap', 'rap br'],
+                'pop': ['pop brasileiro', 'brazilian pop', 'mpb'],
+                'electronic': ['eletrônica brasileira', 'brazilian electronic'],
+                'rock': ['rock brasileiro', 'brazilian rock'],
+                'r&b': ['rnb brasileiro', 'brazilian rnb']
+            }
+        },
+        'Mexico': {
+            'code': 'MX',
+            'terms': ['mexican', 'méxico', 'mexico', 'mx'],
+            'genre_translations': {
+                'hip-hop': ['rap mexicano', 'mexican rap', 'rap mx'],
+                'pop': ['pop mexicano', 'mexican pop'],
+                'electronic': ['electrónica mexicana', 'mexican electronic'],
+                'rock': ['rock mexicano', 'mexican rock'],
+                'r&b': ['rnb mexicano', 'mexican rnb']
+            }
+        },
+        'Australia': {
+            'code': 'AU',
+            'terms': ['australian', 'aussie', 'australia', 'au'],
+            'genre_translations': {
+                'hip-hop': ['australian rap', 'aussie rap', 'au rap'],
+                'pop': ['australian pop', 'aussie pop'],
+                'electronic': ['australian electronic', 'aussie electronic'],
+                'rock': ['australian rock', 'aussie rock'],
+                'r&b': ['australian rnb', 'aussie rnb']
+            }
+        },
+        'Canada': {
+            'code': 'CA',
+            'terms': ['canadian', 'canada', 'ca'],
+            'genre_translations': {
+                'hip-hop': ['canadian rap', 'canada rap', 'ca rap'],
+                'pop': ['canadian pop', 'canada pop'],
+                'electronic': ['canadian electronic', 'canada electronic'],
+                'rock': ['canadian rock', 'canada rock'],
+                'r&b': ['canadian rnb', 'canada rnb']
+            }
+        },
+        'South Korea': {
+            'code': 'KR',
+            'terms': ['korean', 'korea', 'k-', 'kr'],
+            'genre_translations': {
+                'hip-hop': ['k-rap', 'korean rap', 'khiphop'],
+                'pop': ['k-pop', 'korean pop', 'kpop'],
+                'electronic': ['k-electronic', 'korean electronic'],
+                'rock': ['k-rock', 'korean rock'],
+                'r&b': ['k-rnb', 'korean rnb']
+            }
+        }
     }
     
-    market_code = market_codes.get(market, market)
+    # Get market configuration
+    config = market_config.get(market, {'code': market, 'terms': [market.lower()], 'genre_translations': {}})
+    market_code = config['code']
+    market_terms = config['terms']
+    
     headers = {"Authorization": f"Bearer {token}"}
     playlists = []
     
-    # Multiple search strategies to find relevant playlists
-    search_queries = [
-        f"{market_code} {genre.lower()}",  # "FR hip-hop", "JP pop"
-        f"{genre.lower()}",                # Just genre: "pop", "hip-hop" 
-        f"{market.lower()} {genre.lower()}" # Full market name: "japan pop", "france hip-hop"
-    ]
+    # Build comprehensive search queries
+    search_queries = []
     
+    # 1. Local language specific terms (highest priority)
+    genre_translations = config['genre_translations'].get(genre.lower(), [])
+    search_queries.extend(genre_translations)
+    
+    # 2. Market + genre combinations  
+    for term in market_terms:
+        search_queries.append(f"{term} {genre.lower()}")
+    
+    # 3. Market code + genre
+    search_queries.append(f"{market_code} {genre.lower()}")
+    
+    # 4. Add mainstream search terms for better variety
+    if market == 'UK' and genre.lower() == 'electronic':
+        # Add mainstream UK dance terms
+        mainstream_searches = [
+            "uk dance hits",
+            "uk house music", 
+            "new music friday uk",
+            "dance party uk",
+            "uk electronic music",
+            "british dance music"
+        ]
+        search_queries.extend(mainstream_searches)
+    
+    # 5. Generic genre (lowest priority)
+    search_queries.append(genre.lower())
+    
+    # Universal filtering system - automatically works for ALL markets/genres
+    def get_universal_skip_terms(market, genre):
+        """Generate smart skip terms based on market and genre"""
+        # Base terms that are generally irrelevant for music discovery
+        base_skip = ['sleep', 'study', 'meditation', 'yoga', 'ambient', 'white noise', 'rain sounds']
+        
+        # Genre-specific filtering
+        genre_skip = []
+        if genre.lower() in ['hip-hop', 'rap']:
+            genre_skip = ['lofi', 'lo-fi', 'jazz', 'classical', 'instrumental', 'beats to study', 'chill beats']
+            # Cross-cultural contamination prevention (unless it's that market)
+            if market not in ['South Korea', 'Korea']: 
+                genre_skip.extend(['kpop', 'k-pop', 'korean'])
+            if market not in ['Japan']: 
+                genre_skip.extend(['jpop', 'j-pop', 'anime', 'vocaloid'])
+            if market not in ['US', 'USA']: 
+                genre_skip.extend(['type beat', 'beats for sale'])
+        
+        elif genre.lower() == 'electronic':
+            genre_skip = ['acoustic', 'unplugged', 'live session', 'classical']
+            # For UK electronic, be less aggressive with filtering to allow mainstream dance
+            if market == 'UK':
+                genre_skip.extend(['ambient', 'meditation', 'sleep'])  # Keep mainstream dance/house
+            else:
+                if market not in ['Netherlands', 'Belgium']: 
+                    genre_skip.extend(['tomorrowland'])
+                if market not in ['UK', 'Britain']: 
+                    genre_skip.extend(['ministry of sound'])
+            
+        elif genre.lower() == 'pop':
+            genre_skip = ['death metal', 'black metal', 'hardcore punk', 'grindcore']
+        
+        elif genre.lower() == 'rock':
+            genre_skip = ['top 40', 'dance hits', 'club music']
+        
+        # Add workout/generic playlists that dilute results
+        generic_skip = ['workout', 'gym', 'running', 'car music', 'party mix', 'wedding']
+        
+        return base_skip + genre_skip + generic_skip
+    
+    def calculate_universal_priority(playlist_name, market, genre, search_query, config):
+        """Universal priority calculation that works for any market/genre"""
+        priority = 0
+        name_lower = playlist_name.lower()
+        query_lower = search_query.lower()
+        
+        # Market-specific boost (highest priority)
+        market_terms = config.get('terms', [])
+        for term in market_terms:
+            if term in name_lower:
+                priority += 20  # Strong boost for market-specific playlists
+        
+        # Genre translation boost (very high priority)
+        genre_translations = config.get('genre_translations', {}).get(genre.lower(), [])
+        for translation in genre_translations:
+            translation_words = translation.split()
+            if all(word in name_lower for word in translation_words):
+                # Balanced priority: mainstream and underground both get good scores
+                if market == 'UK' and genre.lower() == 'electronic':
+                    # Give mainstream terms equal priority with underground
+                    mainstream_terms = ['uk house', 'uk dance', 'british electronic']
+                    underground_terms = ['uk garage', 'uk bass', 'uk bassline']
+                    if any(term in translation for term in mainstream_terms):
+                        priority += 15  # Equal priority for mainstream
+                    elif any(term in translation for term in underground_terms):
+                        priority += 15  # Equal priority for underground
+                    else:
+                        priority += 15
+                else:
+                    priority += 15  # Strong boost for local language genre terms
+        
+        # Recency boost
+        current_year = "2025"
+        recent_terms = [current_year, "2024", "new", "fresh", "latest", "now"]
+        if any(term in name_lower for term in recent_terms):
+            priority += 8
+        
+        # Quality indicators boost
+        quality_terms = ["best", "top", "hits", "bangers", "essential", "ultimate", "must hear"]
+        quality_score = sum(3 for term in quality_terms if term in name_lower)
+        priority += min(quality_score, 9)  # Cap quality boost
+        
+        # Official/curated playlist boost
+        official_terms = ["official", "spotify", "curated", "editorial", "new music friday"]
+        if any(term in name_lower for term in official_terms):
+            priority += 8  # Higher boost for official playlists
+        
+        # Mainstream UK dance playlist boost
+        if market == 'UK' and genre.lower() == 'electronic':
+            mainstream_playlist_terms = ["dance hits", "house music", "dance party", "electronic music", "club hits"]
+            if any(term in name_lower for term in mainstream_playlist_terms):
+                priority += 5  # Boost mainstream dance playlists
+        
+        return priority
+    
+    # Execute search with universal logic
     all_items = []
     seen_ids = set()
     
-    for search_query in search_queries:
+    for search_query in search_queries[:10]:  # Increased for better coverage
         search_params = {
             "q": search_query,
-            "type": "playlist",
+            "type": "playlist", 
             "market": market_code,
-            "limit": 20
+            "limit": 25  # Increased limit
         }
         
-        search_response = requests.get(
-            "https://api.spotify.com/v1/search",
-            headers=headers,
-            params=search_params
-        )
-        
-        if search_response.status_code == 200:
-            search_data = search_response.json()
-            search_items = search_data.get("playlists", {}).get("items", [])
+        try:
+            search_response = requests.get(
+                "https://api.spotify.com/v1/search",
+                headers=headers,
+                params=search_params
+            )
             
-            # Add unique items only
-            for item in search_items:
-                if item and item.get("id") not in seen_ids:
-                    all_items.append(item)
-                    seen_ids.add(item.get("id"))
+            if search_response.status_code == 200:
+                search_data = search_response.json()
+                search_items = search_data.get("playlists", {}).get("items", [])
+                
+                # Add unique items with metadata
+                for item in search_items:
+                    if item and item.get("id") not in seen_ids:
+                        item['_search_query'] = search_query  # Track which query found it
+                        all_items.append(item)
+                        seen_ids.add(item.get("id"))
+        
+        except Exception as e:
+            print(f"Search error for query '{search_query}': {e}")
+            continue
     
-    search_items = all_items[:30]  # Keep more results to find bigger playlists
+    # Process and filter results with universal logic
+    processed_playlists = []
+    skip_terms = get_universal_skip_terms(market, genre)
     
-    for item in search_items:
+    for item in all_items[:60]:  # Process more items for better filtering
         if not item:
             continue
             
         playlist_id = item.get("id")
+        playlist_name = item.get("name", "")
+        name_lower = playlist_name.lower()
         
-        # Get follower count for frontend display
-        playlist_details = requests.get(
-            f"https://api.spotify.com/v1/playlists/{playlist_id}",
-            headers=headers
-        ).json()
+        # Universal skip check
+        should_skip = any(term in name_lower for term in skip_terms)
+        if should_skip:
+            continue
         
-        playlists.append({
-            "playlist_name": item.get("name"),
-            "playlist_id": playlist_id,
-            "owner": item.get("owner", {}).get("display_name", "Unknown"),
-            "followers": playlist_details.get("followers", {}).get("total", 0),
-            "description": item.get("description", "")
-        })
+        # Get detailed playlist info
+        try:
+            playlist_details = requests.get(
+                f"https://api.spotify.com/v1/playlists/{playlist_id}",
+                headers=headers
+            ).json()
+            
+            followers = playlist_details.get("followers", {}).get("total", 0)
+            
+            # Calculate priority using universal system
+            search_query = item.get('_search_query', '')
+            priority = calculate_universal_priority(playlist_name, market, genre, search_query, config)
+            
+            processed_playlists.append({
+                "playlist_name": playlist_name,
+                "playlist_id": playlist_id,
+                "owner": item.get("owner", {}).get("display_name", "Unknown"),
+                "followers": followers,
+                "description": item.get("description", ""),
+                "priority": priority,
+                "search_query": search_query
+            })
+            
+        except Exception as e:
+            print(f"Error getting playlist details for {playlist_id}: {e}")
+            continue
     
-    # Sort by follower count (biggest playlists first)
-    playlists.sort(key=lambda x: x.get("followers", 0), reverse=True)
+    # Universal sorting: priority first, then followers
+    processed_playlists.sort(key=lambda x: (x.get('priority', 0), x.get('followers', 0)), reverse=True)
+    playlists = processed_playlists
     
     return playlists
 
@@ -405,6 +728,10 @@ def get_writer_credits():
             'total_processed': 0,
             'found_in_apple_music': 0,
             'has_writer_credits': 0,
+            'has_any_ipis': 0,
+            'total_ipis_found': 0,
+            'artist_ipis_found': 0,
+            'writer_ipis_found': 0,
             'has_isrc': 0
         }
         
@@ -427,8 +754,28 @@ def get_writer_credits():
                 
                 if apple_result.get('api_status') == 'found':
                     stats['found_in_apple_music'] += 1
+                    
+                    # Count traditional writer credits (composer names)
                     if apple_result.get('composer_names'):
                         stats['has_writer_credits'] += 1
+                    
+                    # Count IPI extractions (main artist + writers)
+                    has_any_ipi = False
+                    
+                    if apple_result.get('main_artist_ipi'):
+                        stats['artist_ipis_found'] += 1
+                        stats['total_ipis_found'] += 1
+                        has_any_ipi = True
+                    
+                    if apple_result.get('writer_ipis'):
+                        for writer in apple_result.get('writer_ipis', []):
+                            if writer.get('ipi'):
+                                stats['writer_ipis_found'] += 1
+                                stats['total_ipis_found'] += 1
+                                has_any_ipi = True
+                    
+                    if has_any_ipi:
+                        stats['has_any_ipis'] += 1
             else:
                 enriched_track.update({'api_status': 'no_isrc'})
             
@@ -442,6 +789,7 @@ def get_writer_credits():
         # Calculate success rates
         success_rate = (stats['found_in_apple_music'] / stats['has_isrc'] * 100) if stats['has_isrc'] > 0 else 0
         credits_rate = (stats['has_writer_credits'] / stats['has_isrc'] * 100) if stats['has_isrc'] > 0 else 0
+        ipi_success_rate = (stats['has_any_ipis'] / stats['has_isrc'] * 100) if stats['has_isrc'] > 0 else 0
         
         return jsonify({
             'success': True,
@@ -451,7 +799,12 @@ def get_writer_credits():
                 'found_in_apple_music': stats['found_in_apple_music'],
                 'has_writer_credits': stats['has_writer_credits'],
                 'apple_music_success_rate': f"{success_rate:.1f}%",
-                'writer_credits_rate': f"{credits_rate:.1f}%"
+                'writer_credits_rate': f"{credits_rate:.1f}%",
+                'total_ipis_found': stats['total_ipis_found'],
+                'artist_ipis_found': stats['artist_ipis_found'],
+                'writer_ipis_found': stats['writer_ipis_found'],
+                'ipi_success_rate': f"{ipi_success_rate:.1f}%",
+                'has_any_ipis': stats['has_any_ipis']
             },
             'tracks': enriched_tracks
         })
