@@ -752,7 +752,7 @@ def get_writer_credits():
                 
                 enriched_track.update(apple_result)
                 
-                if apple_result.get('api_status') == 'found':
+                if apple_result.get('api_status') in ['found', 'found_with_credits']:
                     stats['found_in_apple_music'] += 1
                     
                     # Count traditional writer credits (composer names)
