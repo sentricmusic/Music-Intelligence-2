@@ -11,6 +11,11 @@ function App() {
   const [tracks, setTracks] = useState(null);
   const [isLoadingCredits, setIsLoadingCredits] = useState(false);
   const [writerCredits, setWriterCredits] = useState(null);
+  
+  // Profiling states
+  const [isProfilingLoading, setIsProfilingLoading] = useState(false);
+  const [profilingData, setProfilingData] = useState(null);
+  const [profilingError, setProfilingError] = useState(null);
 
   const markets = ['France', 'UK', 'Germany', 'Spain', 'US', 'Thailand', 'Japan'];
   const genres = ['Hip-Hop', 'Pop', 'Electronic', 'R&B', 'Rock'];
@@ -104,6 +109,9 @@ function App() {
       
       if (data.success) {
         setWriterCredits(data);
+        
+        // After writer credits are fetched, automatically start profiling
+        handleProfileMarket();
       } else {
         alert('Error: ' + data.error);
       }
@@ -111,6 +119,39 @@ function App() {
       alert('Error fetching writer credits: ' + error.message);
     } finally {
       setIsLoadingCredits(false);
+    }
+  };
+
+  const handleProfileMarket = async () => {
+    if (!market || !genre) {
+      alert('Market and genre required for profiling');
+      return;
+    }
+    
+    setIsProfilingLoading(true);
+    setProfilingData(null);
+    setProfilingError(null);
+    
+    try {
+      const response = await fetch('http://localhost:5001/api/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ market, genre })
+      });
+      
+      const data = await response.json();
+      
+      if (data.status === 'success' || data.status === 'mock') {
+        setProfilingData(data);
+      } else {
+        setProfilingError(data.error || 'Profiling failed');
+      }
+    } catch (error) {
+      setProfilingError('Error connecting to profiling service: ' + error.message);
+    } finally {
+      setIsProfilingLoading(false);
     }
   };
 
@@ -484,6 +525,203 @@ function App() {
                   <p style={{ color: '#999' }}>No writer credits found</p>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Profiling Loading State */}
+          {isProfilingLoading && (
+            <div style={{ 
+              textAlign: 'center', 
+              marginTop: '30px', 
+              padding: '20px',
+              backgroundColor: '#2a2a2a',
+              borderRadius: '10px'
+            }}>
+              <div style={{ color: '#4CAF50', fontSize: '18px', marginBottom: '10px' }}>
+                📊 Profiling market data for {market} {genre}...
+              </div>
+              <div style={{ color: '#fff' }}>
+                Analyzing historical 5-50M hits, playlist performance, and market insights
+              </div>
+            </div>
+          )}
+
+          {/* Profiling Error */}
+          {profilingError && (
+            <div style={{ 
+              textAlign: 'center', 
+              marginTop: '30px', 
+              padding: '20px',
+              backgroundColor: '#3a1a1a',
+              borderRadius: '10px',
+              border: '1px solid #ff4444'
+            }}>
+              <div style={{ color: '#ff4444', fontSize: '16px' }}>
+                ❌ Profiling Error: {profilingError}
+              </div>
+            </div>
+          )}
+
+          {/* Profiling Results */}
+          {profilingData && profilingData.status === 'success' && (
+            <div style={{ 
+              marginTop: '30px', 
+              padding: '20px',
+              backgroundColor: '#2a2a2a',
+              borderRadius: '10px',
+              border: '2px solid #4CAF50'
+            }}>
+              <h2 style={{ color: '#4CAF50', textAlign: 'center', marginBottom: '20px' }}>
+                📊 Market Profile: {profilingData.market_display} {profilingData.genre}
+              </h2>
+              
+              {/* Summary Stats */}
+              {profilingData.summary_stats && (
+                <div style={{ marginBottom: '30px' }}>
+                  <h3 style={{ color: '#fff', marginBottom: '15px' }}>📈 Market Overview</h3>
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                    gap: '15px' 
+                  }}>
+                    <div style={{ backgroundColor: '#1a3d1a', padding: '15px', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ color: '#4CAF50', fontSize: '24px', fontWeight: 'bold' }}>
+                        {profilingData.summary_stats.total_5_50m_songs || 0}
+                      </div>
+                      <div style={{ color: '#aaa', fontSize: '14px' }}>Total 5-50M Hits</div>
+                    </div>
+                    <div style={{ backgroundColor: '#1a3d1a', padding: '15px', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ color: '#4CAF50', fontSize: '24px', fontWeight: 'bold' }}>
+                        {profilingData.summary_stats.total_playlists || 0}
+                      </div>
+                      <div style={{ color: '#aaa', fontSize: '14px' }}>Total Playlists</div>
+                    </div>
+                    <div style={{ backgroundColor: '#1a3d1a', padding: '15px', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ color: '#4CAF50', fontSize: '24px', fontWeight: 'bold' }}>
+                        {profilingData.summary_stats.avg_streams_millions || 0}M
+                      </div>
+                      <div style={{ color: '#aaa', fontSize: '14px' }}>Avg Streams</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Top Playlists */}
+              {profilingData.playlist_performance && profilingData.playlist_performance.length > 0 && (
+                <div style={{ marginBottom: '30px' }}>
+                  <h3 style={{ color: '#fff', marginBottom: '15px' }}>🎵 Top Performing Playlists</h3>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#1a1a1a' }}>
+                          <th style={{ color: '#4CAF50', padding: '12px', textAlign: 'left', borderBottom: '2px solid #4CAF50' }}>Playlist</th>
+                          <th style={{ color: '#4CAF50', padding: '12px', textAlign: 'center', borderBottom: '2px solid #4CAF50' }}>Hit Rate</th>
+                          <th style={{ color: '#4CAF50', padding: '12px', textAlign: 'center', borderBottom: '2px solid #4CAF50' }}>Hit Songs</th>
+                          <th style={{ color: '#4CAF50', padding: '12px', textAlign: 'center', borderBottom: '2px solid #4CAF50' }}>Activity</th>
+                          <th style={{ color: '#4CAF50', padding: '12px', textAlign: 'center', borderBottom: '2px solid #4CAF50' }}>Priority</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {profilingData.playlist_performance.slice(0, 10).map((playlist, idx) => (
+                          <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#2a2a2a' : '#333' }}>
+                            <td style={{ color: '#fff', padding: '12px', maxWidth: '200px' }}>
+                              {playlist.playlist_name}
+                            </td>
+                            <td style={{ color: '#4CAF50', padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>
+                              {(playlist.hit_rate_5_50m_percent * 100).toFixed(1)}%
+                            </td>
+                            <td style={{ color: '#fff', padding: '12px', textAlign: 'center' }}>
+                              {playlist.songs_hit_5_50m}
+                            </td>
+                            <td style={{ padding: '12px', textAlign: 'center' }}>
+                              <span style={{
+                                padding: '4px 8px',
+                                borderRadius: '12px',
+                                fontSize: '12px',
+                                backgroundColor: playlist.activity_status === 'Very Active' ? '#4CAF50' : 
+                                                playlist.activity_status === 'Active' ? '#2196F3' : 
+                                                playlist.activity_status === 'Moderate' ? '#FF9800' : '#f44336',
+                                color: '#fff'
+                              }}>
+                                {playlist.activity_status}
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px', textAlign: 'center' }}>
+                              <span style={{
+                                padding: '4px 8px',
+                                borderRadius: '12px',
+                                fontSize: '12px',
+                                backgroundColor: playlist.ml_model_priority === 'High Priority' ? '#4CAF50' : 
+                                                playlist.ml_model_priority === 'Medium Priority' ? '#FF9800' : '#666',
+                                color: '#fff'
+                              }}>
+                                {playlist.ml_model_priority}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Timing Analysis */}
+              {profilingData.timing_analysis && profilingData.timing_analysis.length > 0 && (
+                <div style={{ marginBottom: '30px' }}>
+                  <h3 style={{ color: '#fff', marginBottom: '15px' }}>⏱️ Time to Success (5M Streams)</h3>
+                  {profilingData.timing_analysis.map((timing, idx) => (
+                    <div key={idx} style={{ 
+                      marginBottom: '10px', 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      backgroundColor: '#1a1a1a',
+                      padding: '12px',
+                      borderRadius: '8px'
+                    }}>
+                      <div style={{ color: '#fff', width: '150px', fontSize: '14px' }}>
+                        {timing.time_to_5m}
+                      </div>
+                      <div style={{ 
+                        flex: 1, 
+                        backgroundColor: '#333', 
+                        height: '20px', 
+                        borderRadius: '10px', 
+                        position: 'relative',
+                        marginRight: '15px'
+                      }}>
+                        <div style={{ 
+                          backgroundColor: '#4CAF50', 
+                          height: '100%', 
+                          width: `${timing.percentage * 100}%`, 
+                          borderRadius: '10px',
+                          minWidth: '2px'
+                        }} />
+                      </div>
+                      <div style={{ color: '#4CAF50', fontWeight: 'bold', width: '60px', textAlign: 'right' }}>
+                        {(timing.percentage * 100).toFixed(1)}%
+                      </div>
+                      <div style={{ color: '#aaa', width: '100px', textAlign: 'right', fontSize: '12px' }}>
+                        {timing.song_count} songs
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {profilingData.status === 'mock' && (
+                <div style={{ 
+                  textAlign: 'center', 
+                  color: '#FFD700', 
+                  fontSize: '14px',
+                  marginTop: '20px',
+                  padding: '10px',
+                  backgroundColor: '#3d3d1a',
+                  borderRadius: '8px'
+                }}>
+                  ⚠️ Currently showing mock data. Connect Snowflake for real market analysis.
+                </div>
+              )}
             </div>
           )}
 

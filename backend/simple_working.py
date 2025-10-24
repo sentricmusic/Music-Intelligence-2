@@ -812,6 +812,91 @@ def get_writer_credits():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Initialize profiling service (with mock for development)
+try:
+    from profiling_service import ProfilingService, MockProfilingService
+    # Try to use real service, fall back to mock if Snowflake not configured
+    profiling_service = MockProfilingService()  # Change to ProfilingService() when Snowflake is ready
+    print("📊 Profiling service initialized (mock mode)")
+except Exception as e:
+    profiling_service = None
+    print(f"⚠️ Profiling service unavailable: {e}")
+
+@app.route('/api/profile', methods=['POST'])
+def profile_market_genre():
+    """
+    Profile a market/genre combination using historical data
+    
+    Request: {"market": "France", "genre": "Hip-Hop"}
+    Response: Complete profiling results with statistics
+    """
+    try:
+        if profiling_service is None:
+            return jsonify({'error': 'Profiling service not available'}), 503
+        
+        data = request.json
+        market = data.get('market')
+        genre = data.get('genre')
+        
+        if not market or not genre:
+            return jsonify({'error': 'Market and genre required'}), 400
+        
+        print(f"🎯 Profiling request: {market} - {genre}")
+        
+        # Execute profiling
+        results = profiling_service.profile_market_genre(market, genre)
+        
+        # Add timestamp
+        import datetime
+        results['timestamp'] = datetime.datetime.now().isoformat()
+        results['processing_time'] = 'Mock data (instant)'
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        print(f"❌ Profiling error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/profile/test', methods=['GET'])
+def test_profiling_connection():
+    """Test profiling service connection"""
+    try:
+        if profiling_service is None:
+            return jsonify({'status': 'error', 'message': 'Profiling service not initialized'})
+        
+        result = profiling_service.test_connection()
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
+@app.route('/api/insights', methods=['POST'])
+def get_market_insights():
+    """
+    Get structured insights for a market/genre
+    
+    Request: {"market": "UK", "genre": "Electronic"}
+    Response: Key insights summary for reporting
+    """
+    try:
+        if profiling_service is None:
+            return jsonify({'error': 'Profiling service not available'}), 503
+        
+        data = request.json
+        market = data.get('market')
+        genre = data.get('genre')
+        
+        if not market or not genre:
+            return jsonify({'error': 'Market and genre required'}), 400
+        
+        # Get insights
+        insights = profiling_service.get_market_insights(market, genre)
+        
+        return jsonify(insights)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     print("🚀 Starting WORKING Apple Music Server...")
     print(f"📁 Apple Music key exists: {os.path.exists(PRIVATE_KEY_PATH)}")
