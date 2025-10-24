@@ -218,7 +218,7 @@ class MockProfilingService(ProfilingService):
         super().__init__(None)
     
     def profile_market_genre(self, market_name, genre):
-        """Return mock profiling data"""
+        """Return REVOLUTIONARY music intelligence mock data with baseline vs incremental analysis"""
         market_code = convert_market_to_code(market_name)
         
         return {
@@ -226,49 +226,308 @@ class MockProfilingService(ProfilingService):
             'market': market_code,
             'market_display': market_name,
             'genre': genre,
+            
+            # KEY INNOVATION: Summary with baseline vs incremental analysis
             'summary_stats': {
-                'total_5_50m_songs': 1250,
-                'total_playlists': 145,
-                'avg_playlists_per_song': 3.2,
-                'avg_streams_millions': 12.8,
-                'median_streams_millions': 8.5
+                'total_5_50m_hits': 347,  # Songs that actually hit 5-50M from playlists
+                'total_playlist_songs_analyzed': 1243,  # Total songs pulled from playlists
+                'playlist_driven_hits': 347,  # Songs where playlists drove success (vs already popular)
+                'avg_baseline_when_playlisted': 0.42,  # 420K avg streams when first added
+                'avg_final_streams': 16.8,  # 16.8M final average
+                'avg_incremental_from_playlists': 16.4,  # 16.4M driven by playlists (proof!)
+                'median_time_to_5m_months': 4.3,
+                'avg_playlists_per_hit': 7.2,
+                'gateway_success_rate': 0.73  # 73% of songs reaching gateway in 14 days succeed
             },
-            'playlist_performance': [
+            
+            # TIER-BASED PLAYLIST ANALYSIS (with real impact data)
+            'playlist_tiers': [
                 {
-                    'playlist_name': f'Top {genre} {market_name}',
-                    'total_songs': 524,
-                    'songs_hit_5_50m': 127,
-                    'hit_rate_5_50m_percent': 0.242,
-                    'followers': '2.3M',
-                    'activity_status': 'Very Active',
-                    'ml_model_priority': 'High Priority'
+                    'tier': 'Tier 1 - Editorial Flagships',
+                    'playlists': [
+                        {
+                            'playlist_name': f'Radar {market_name}' if market_name != 'US' else 'RapCaviar',
+                            'tier': 1,
+                            'playlist_type': 'Editorial Gateway',
+                            'followers': '3.2M',
+                            'songs_analyzed': 241,
+                            'hits_produced': 167,
+                            'hit_rate': 0.69,  # 69% - incredible!
+                            'avg_incremental_streams': 22.5,  # 22.5M avg boost
+                            'avg_baseline_when_added': 0.38,  # Songs added early (380K baseline)
+                            'activity_status': 'Very Active',
+                            'adds_per_week': 12,
+                            'is_gateway': True,
+                            'gateway_to_mainstream_rate': 0.84  # 84% go mainstream after this
+                        },
+                        {
+                            'playlist_name': f'New Music Friday {market_name}',
+                            'tier': 1,
+                            'playlist_type': 'Editorial Spotlight',
+                            'followers': '4.8M',
+                            'songs_analyzed': 198,
+                            'hits_produced': 89,
+                            'hit_rate': 0.45,  # 45% hit rate
+                            'avg_incremental_streams': 18.7,
+                            'avg_baseline_when_added': 0.85,  # Added later (850K baseline)
+                            'activity_status': 'Very Active',
+                            'adds_per_week': 8,
+                            'is_gateway': True,
+                            'gateway_to_mainstream_rate': 0.91
+                        }
+                    ]
                 },
                 {
-                    'playlist_name': f'{genre} Hits {market_name}',
-                    'total_songs': 312,
-                    'songs_hit_5_50m': 58,
-                    'hit_rate_5_50m_percent': 0.186,
-                    'followers': '1.8M',
-                    'activity_status': 'Active', 
-                    'ml_model_priority': 'Medium Priority'
+                    'tier': 'Tier 2 - Genre Leaders',
+                    'playlists': [
+                        {
+                            'playlist_name': f'Générations {genre} {market_code}' if market_name == 'France' else f'{genre} Central',
+                            'tier': 2,
+                            'playlist_type': 'Genre Authority',
+                            'followers': '1.9M',
+                            'songs_analyzed': 156,
+                            'hits_produced': 67,
+                            'hit_rate': 0.43,  # 43% hit rate
+                            'avg_incremental_streams': 12.3,
+                            'avg_baseline_when_added': 0.52,
+                            'activity_status': 'Active',
+                            'adds_per_week': 6,
+                            'is_gateway': False,
+                            'gateway_to_mainstream_rate': 0.31
+                        },
+                        {
+                            'playlist_name': f'{genre} Workout',
+                            'tier': 2,
+                            'playlist_type': 'Context Curator',
+                            'followers': '2.1M',
+                            'songs_analyzed': 134,
+                            'hits_produced': 41,
+                            'hit_rate': 0.31,
+                            'avg_incremental_streams': 8.9,
+                            'avg_baseline_when_added': 0.71,
+                            'activity_status': 'Active',
+                            'adds_per_week': 4,
+                            'is_gateway': False,
+                            'gateway_to_mainstream_rate': 0.22
+                        }
+                    ]
+                },
+                {
+                    'tier': 'Tier 3 - Discovery Engines',
+                    'playlists': [
+                        {
+                            'playlist_name': 'POLLEN' if market_name == 'France' else 'Fresh Finds',
+                            'tier': 3,
+                            'playlist_type': 'Discovery/Emerging',
+                            'followers': '680K',
+                            'songs_analyzed': 298,
+                            'hits_produced': 56,
+                            'hit_rate': 0.19,
+                            'avg_incremental_streams': 4.2,
+                            'avg_baseline_when_added': 0.15,  # Very early (150K baseline)
+                            'activity_status': 'Very Active',
+                            'adds_per_week': 15,
+                            'is_gateway': False,
+                            'gateway_to_mainstream_rate': 0.68  # Good stepping stone
+                        }
+                    ]
                 }
             ],
-            'most_common_playlists': [
-                {'playlist_name': f'New Music Friday {market_name}', 'hit_songs_count': 89, 'percentage_of_5_50m_hits': 0.071},
-                {'playlist_name': f'{genre} Central', 'hit_songs_count': 67, 'percentage_of_5_50m_hits': 0.054}
+            
+            # GATEWAY DETECTION - The magic crossover analysis
+            'gateway_analysis': {
+                'primary_gateways': [
+                    {
+                        'playlist_name': f'Radar {market_name}' if market_name != 'US' else 'RapCaviar',
+                        'gateway_type': 'Genre → Mainstream Bridge',
+                        'songs_that_crossed_over': 167,
+                        'crossover_success_rate': 0.84,
+                        'avg_days_to_mainstream': 14,
+                        'next_playlists': [
+                            {'playlist': f'Top {market_name}', 'frequency': 89, 'avg_days': 21},
+                            {'playlist': f'Viral 50 {market_name}', 'frequency': 67, 'avg_days': 18},
+                            {'playlist': f'New Music Friday {market_name}', 'frequency': 45, 'avg_days': 12}
+                        ]
+                    }
+                ],
+                'gateway_timing': {
+                    'fast_track_14_days': {'songs': 127, 'success_rate': 0.73},
+                    'normal_15_30_days': {'songs': 89, 'success_rate': 0.41},
+                    'slow_31_60_days': {'songs': 34, 'success_rate': 0.26},
+                    'very_slow_60_plus': {'songs': 18, 'success_rate': 0.11}
+                }
+            },
+            
+            # PLAYLIST JOURNEY PATHS - Common sequences to success
+            'journey_paths': [
+                {
+                    'path_name': 'Discovery → Gateway → Mainstream',
+                    'sequence': f'POLLEN → Radar {market_name} → Top {market_name}',
+                    'frequency': 87,
+                    'success_rate': 0.89,
+                    'avg_timeline_days': 45,
+                    'step_1': {'playlist': 'POLLEN', 'avg_baseline': 0.15, 'avg_days_to_next': 14},
+                    'step_2': {'playlist': f'Radar {market_name}', 'avg_baseline': 0.58, 'avg_days_to_next': 21},
+                    'step_3': {'playlist': f'Top {market_name}', 'avg_baseline': 3.2, 'avg_days_to_next': None},
+                    'avg_final_streams': 22.1
+                },
+                {
+                    'path_name': 'Genre Leader → Editorial → Viral',
+                    'sequence': f'Générations {genre} → New Music Friday {market_name} → Viral 50 {market_name}',
+                    'frequency': 62,
+                    'success_rate': 0.76,
+                    'avg_timeline_days': 31,
+                    'step_1': {'playlist': f'Générations {genre}', 'avg_baseline': 0.31, 'avg_days_to_next': 8},
+                    'step_2': {'playlist': f'New Music Friday {market_name}', 'avg_baseline': 1.1, 'avg_days_to_next': 18},
+                    'step_3': {'playlist': f'Viral 50 {market_name}', 'avg_baseline': 4.8, 'avg_days_to_next': None},
+                    'avg_final_streams': 15.3
+                },
+                {
+                    'path_name': 'Failed Path (Stalled)',
+                    'sequence': f'{genre} Workout → Chill {genre} → [STALLED]',
+                    'frequency': 34,
+                    'success_rate': 0.12,
+                    'avg_timeline_days': 120,
+                    'step_1': {'playlist': f'{genre} Workout', 'avg_baseline': 0.09, 'avg_days_to_next': 45},
+                    'step_2': {'playlist': f'Chill {genre}', 'avg_baseline': 0.31, 'avg_days_to_next': None},
+                    'step_3': {'playlist': 'NEVER REACHED MAINSTREAM', 'avg_baseline': None, 'avg_days_to_next': None},
+                    'avg_final_streams': 2.1
+                }
             ],
-            'timing_analysis': [
-                {'time_to_5m': '1-3 months to 5M', 'song_count': 312, 'percentage': 0.25, 'avg_final_streams_millions': 15.2},
-                {'time_to_5m': '4-6 months to 5M', 'song_count': 487, 'percentage': 0.39, 'avg_final_streams_millions': 11.8},
-                {'time_to_5m': '7-12 months to 5M', 'song_count': 298, 'percentage': 0.24, 'avg_final_streams_millions': 9.4},
-                {'time_to_5m': 'Over 1 year to 5M', 'song_count': 153, 'percentage': 0.12, 'avg_final_streams_millions': 7.1}
+            
+            # PLAYLIST VELOCITY ANALYSIS - Speed is everything!
+            'velocity_analysis': {
+                'summary': {
+                    'total_songs_analyzed': 445,
+                    'velocity_correlation': 'STRONG POSITIVE - Faster playlist adoption = Higher hit rate',
+                    'key_insight': 'Multiple playlists picking up a song QUICKLY = strongest success predictor'
+                },
+                'velocity_tiers': [
+                    {
+                        'velocity_type': 'Lightning Fast',
+                        'definition': '6+ playlists in first 30 days',
+                        'songs_count': 89,
+                        'hits_produced': 42,
+                        'hit_rate': 0.47,  # 47% - INCREDIBLE!
+                        'avg_incremental_streams': 18.2,
+                        'avg_baseline_at_first_playlist': 0.31,  # Early adoption
+                        'avg_days_to_first_playlist': 3,
+                        'avg_days_to_6th_playlist': 22,
+                        'typical_sequence': 'Discovery → 3 Genre → 2 Gateway → Mainstream',
+                        'success_indicator': 'HIGHEST - Strong industry consensus'
+                    },
+                    {
+                        'velocity_type': 'Fast',
+                        'definition': '3-5 playlists in first 30 days', 
+                        'songs_count': 134,
+                        'hits_produced': 67,
+                        'hit_rate': 0.50,  # 50% - Even better rate!
+                        'avg_incremental_streams': 14.7,
+                        'avg_baseline_at_first_playlist': 0.28,
+                        'avg_days_to_first_playlist': 5,
+                        'avg_days_to_5th_playlist': 26,
+                        'typical_sequence': 'Discovery → Gateway → Mainstream',
+                        'success_indicator': 'HIGH - Good momentum'
+                    },
+                    {
+                        'velocity_type': 'Moderate',
+                        'definition': '2-3 playlists in first 60 days',
+                        'songs_count': 98, 
+                        'hits_produced': 31,
+                        'hit_rate': 0.32,  # 32% - Okay but concerning
+                        'avg_incremental_streams': 8.9,
+                        'avg_baseline_at_first_playlist': 0.45,
+                        'avg_days_to_first_playlist': 12,
+                        'avg_days_to_3rd_playlist': 48,
+                        'typical_sequence': 'Genre → Gateway → Maybe Mainstream',
+                        'success_indicator': 'MEDIUM - Lukewarm industry response'
+                    },
+                    {
+                        'velocity_type': 'Slow',
+                        'definition': '1-2 playlists in first 90 days',
+                        'songs_count': 124,
+                        'hits_produced': 15, 
+                        'hit_rate': 0.12,  # 12% - DANGER ZONE
+                        'avg_incremental_streams': 3.4,
+                        'avg_baseline_at_first_playlist': 0.67,  # Already had traction
+                        'avg_days_to_first_playlist': 21,
+                        'avg_days_to_2nd_playlist': 67,
+                        'typical_sequence': 'Single genre playlist → Stalled',
+                        'success_indicator': 'LOW - Weak industry interest'
+                    }
+                ],
+                'velocity_insights': [
+                    {
+                        'insight': 'The 30-day window is CRITICAL',
+                        'data': 'Songs with 3+ playlists in 30 days = 48% avg hit rate vs 12% for slow songs'
+                    },
+                    {
+                        'insight': 'Early adoption matters more than baseline streams',
+                        'data': 'Fast songs start at 0.28-0.31M baseline, slow songs at 0.67M but fail'
+                    },
+                    {
+                        'insight': 'Industry consensus is the strongest predictor', 
+                        'data': 'Multiple curators choosing the same song independently = gold'
+                    }
+                ]
+            },
+            
+            # WRITER SUCCESS INTELLIGENCE - Publishing gold!
+            'writer_success': [
+                {
+                    'writer_name': 'Pierre Dubois',
+                    'total_tracks_analyzed': 18,
+                    'hits_produced': 11,
+                    'hit_rate': 0.61,  # 61% vs 23% market average!
+                    'market_average_hit_rate': 0.23,
+                    'performance_multiplier': 2.7,  # 2.7x better than average
+                    'avg_streams_per_track': 19.2,
+                    'avg_baseline_when_discovered': 0.18,  # Catches songs early
+                    'avg_incremental_contribution': 18.8,
+                    'typical_journey': 'Discovery → Gateway → Mainstream (Fast)',
+                    'avg_time_to_5m': 3.1,
+                    'writer_status': 'PRIORITY WRITER'
+                },
+                {
+                    'writer_name': 'Marie Laurent',
+                    'total_tracks_analyzed': 22,
+                    'hits_produced': 4,
+                    'hit_rate': 0.18,  # Below average
+                    'market_average_hit_rate': 0.23,
+                    'performance_multiplier': 0.8,
+                    'avg_streams_per_track': 7.1,
+                    'avg_baseline_when_discovered': 1.2,  # Songs already had traction
+                    'avg_incremental_contribution': 5.8,
+                    'typical_journey': 'Mid-level entry → Inconsistent',
+                    'avg_time_to_5m': 8.2,
+                    'writer_status': 'BELOW AVERAGE'
+                },
+                {
+                    'writer_name': 'Alex Chen',
+                    'total_tracks_analyzed': 15,
+                    'hits_produced': 8,
+                    'hit_rate': 0.53,  # Above average
+                    'market_average_hit_rate': 0.23,
+                    'performance_multiplier': 2.3,
+                    'avg_streams_per_track': 16.4,
+                    'avg_baseline_when_discovered': 0.21,
+                    'avg_incremental_contribution': 16.1,
+                    'typical_journey': 'Discovery → Gateway → Mainstream (Consistent)',
+                    'avg_time_to_5m': 3.8,
+                    'writer_status': 'HIGH VALUE'
+                }
             ],
+            
+            # SEASONALITY with actual impact
             'seasonality': [
-                {'playlist_month': 1, 'month_name': 'January', 'songs_added': 2341, 'hit_rate_5_50m_percent': 0.187},
-                {'playlist_month': 2, 'month_name': 'February', 'songs_added': 2156, 'hit_rate_5_50m_percent': 0.201},
-                {'playlist_month': 3, 'month_name': 'March', 'songs_added': 2487, 'hit_rate_5_50m_percent': 0.234},
-                {'playlist_month': 4, 'month_name': 'April', 'songs_added': 2298, 'hit_rate_5_50m_percent': 0.198}
+                {'month': 1, 'month_name': 'January', 'songs_added': 134, 'hit_rate': 0.18, 'avg_incremental': 12.4},
+                {'month': 2, 'month_name': 'February', 'songs_added': 121, 'hit_rate': 0.14, 'avg_incremental': 10.1},
+                {'month': 3, 'month_name': 'March', 'songs_added': 156, 'hit_rate': 0.31, 'avg_incremental': 18.9},  # Best!
+                {'month': 9, 'month_name': 'September', 'songs_added': 142, 'hit_rate': 0.31, 'avg_incremental': 17.2},  # Also great
+                {'month': 10, 'month_name': 'October', 'songs_added': 138, 'hit_rate': 0.26, 'avg_incremental': 15.8},
+                {'month': 12, 'month_name': 'December', 'songs_added': 98, 'hit_rate': 0.12, 'avg_incremental': 7.9}   # Worst
             ],
+            
             'errors': []
         }
     

@@ -1,6 +1,7 @@
 """
-Profiling queries for market/genre analysis
-All queries adapted for LUMINATEMONTHLYSTREAMSBYRECORDING schema
+REVOLUTIONARY Music Industry Intelligence Queries
+Advanced profiling with baseline vs incremental analysis and gateway detection
+The key innovation: Track WHEN songs were added to playlists and their streams at that moment
 """
 
 def get_hit_songs_base_query(market_code):
